@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Custom Cape Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    @font-face {
+      font-family: 'Mojang';
+      src: url('Mojang-Regular.ttf') format('truetype');
+    }
+
+    body {
+      font-family: 'Mojang', Arial, sans-serif;
+      padding: 20px;
+      background-color: #121212;
+      color: #fff;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    body.light-mode {
+      background-color: #f0f0f0;
+      color: #000;
+    }
+
+    button {
+      font-family: 'Mojang', Arial, sans-serif;
+      padding: 15px 25px;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #3f51b5;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::after {
+      content: "";
+      position: absolute;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 100%;
+      transform: scale(0);
+      opacity: 0;
+      transition: transform 0.4s, opacity 0.8s;
+      pointer-events: none;
+    }
+
+    button:active::after {
+      transform: scale(3);
+      opacity: 1;
+      transition: 0s;
+    }
+
+    input[type="file"],
+    input[type="text"] {
+      font-family: 'Mojang', Arial, sans-serif;
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    #templates {
+      margin-top: 40px;
+    }
+
+    .template-card {
+      display: inline-block;
+      margin: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      text-align: center;
+      width: 140px;
+      cursor: pointer;
+      background-color: #1e1e1e;
+      transition: background-color 0.3s;
+      position: relative;
+    }
+
+    .template-card:hover {
+      background-color: #333;
+    }
+
+    .template-card img {
+      width: 64px;
+      height: 32px;
+      display: block;
+      margin: 0 auto 10px;
+    }
+
+    .template-card::after {
+      content: "";
+      position: absolute;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 100%;
+      transform: scale(0);
+      opacity: 0;
+      transition: transform 0.4s, opacity 0.8s;
+      pointer-events: none;
+    }
+
+    .template-card:active::after {
+      transform: scale(3);
+      opacity: 1;
+      transition: 0s;
+    }
+
+    a {
+      color: #00bfff;
+      cursor: pointer;
+    }
+
+    #footer-buttons {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      z-index: 1000;
+    }
+
+    .icon-button {
+      background-color: #222;
+      border: none;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: white;
+      font-size: 20px;
+      transition: background-color 0.2s;
+    }
+
+    .icon-button:hover {
+      background-color: #444;
+    }
+
+    .icon-button.discord {
+      background-color: #5865F2;
+    }
+
+    .icon-button.github {
+      background-color: #333;
+    }
+  </style>
+</head>
+<body>
+  <button onclick="toggleTheme()">Toggle Light/Dark Mode</button>
+  <h2>Custom Cape Generator for Minecraft Bedrock</h2>
+
+  <div id="howto">
+    <p>
+      To make your custom cape first download the template image
+      <a onclick="downloadTemplateImage()">here</a> and add your cape texture on the tall rectangle area.
+      Then import it, give your pack name, and download it then replace the .zip with .mcpack and import it to minecraft.
+    </p>
+  </div>
+
+  <label for="packName">Pack Name:</label>
+  <input type="text" id="packName" placeholder="Enter pack name (optional)" />
+  <br /><br />
+  <input type="file" id="imageInput" accept="image/*" />
+  <button onclick="createZip()">Download Zip</button>
+
+  <div id="templates">
+    <h3>Templates</h3>
+    <div class="template-card" onclick="downloadTemplate('template1.mcpack.zip')">
+      <img src="cape_invisible.png" alt="Migrator Cape" />
+      <span>Download Migrator Cape</span>
+    </div>
+    <div class="template-card" onclick="downloadTemplate('founders.mcpack.zip')">
+      <img src="founders.png" alt="Founders Cape" />
+      <span>Download Founders Cape</span>
+    </div>
+    <div class="template-card" onclick="downloadTemplate('optifine.mcpack.zip')">
+      <img src="optifine.png" alt="Optifine Cape" />
+      <span>Download Optifine Cape</span>
+    </div>
+    <div class="template-card" onclick="downloadTemplate('new_developer.mcpack.zip')">
+      <img src="new_developer.png" alt="Developer Cape" />
+      <span>Download Developer's Cape</span>
+    </div>
+    <div class="template-card" onclick="downloadTemplate('minecoin_2016.mcpack.zip')">
+      <img src="minecoin.png" alt="Minecoin 2016" />
+      <span>Download Minecoin 2016 Cape</span>
+    </div>
+    <div class="template-card" onclick="downloadTemplate('turtle.mcpack.zip')">
+      <img src="turtle.png" alt="Turtle Cape" />
+      <span>Download Turtle Cape</span>
+    </div>
+  </div>
+
+  <div id="footer-buttons">
+    <a href="https://discord.gg/hXRBsvksRX" target="_blank" class="icon-button discord">
+      <i class="fab fa-discord"></i>
+    </a>
+    <a href="https://github.com/Packaverse" target="_blank" class="icon-button github">
+      <i class="fab fa-github"></i>
+    </a>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      document.body.classList.toggle('light-mode');
+    }
+
+    function downloadTemplateImage() {
+      const a = document.createElement('a');
+      a.href = 'template.png';
+      a.download = 'template.png';
+      a.click();
+    }
+
+    function downloadTemplate(filename) {
+      const a = document.createElement('a');
+      a.href = filename;
+      a.download = filename;
+      a.click();
+    }
+
+    function generateUUID() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    async function fetchAndAddFile(zip, path, zipPath) {
+      const response = await fetch(path);
+      if (!response.ok) throw new Error(`Failed to load ${path}`);
+      const data = await response.arrayBuffer();
+      zip.file(zipPath, data);
+    }
+
+    async function createZip() {
+      const fileInput = document.getElementById('imageInput');
+      const file = fileInput.files[0];
+      const packNameInput = document.getElementById('packName').value.trim();
+      const packName = packNameInput !== "" ? packNameInput : "Custom cape by yami";
+
+      if (!file) {
+        alert('Please upload an image first.');
+        return;
+      }
+
+      const zip = new JSZip();
+
+      const texturesFolder = zip.folder('textures').folder('entity');
+      const renamedFile = new File([file], 'cape_invisible.png', { type: file.type });
+      const fileData = await renamedFile.arrayBuffer();
+      texturesFolder.file('cape_invisible.png', fileData);
+
+      const manifest = {
+        format_version: 2,
+        header: {
+          name: packName,
+          description: "Custom cape website by yami",
+          uuid: generateUUID(),
+          version: [1, 0, 0],
+          min_engine_version: [1, 18, 0]
+        },
+        modules: [
+          {
+            type: "resources",
+            uuid: generateUUID(),
+            version: [1, 0, 0]
+          }
+        ]
+      };
+      zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+
+      await fetchAndAddFile(zip, 'cape/animations/custom.animation.json', 'animations/custom.animation.json');
+      await fetchAndAddFile(zip, 'cape/animations/render.animation.json', 'animations/render.animation.json');
+      await fetchAndAddFile(zip, 'cape/entity/player.entity.json', 'entity/player.entity.json');
+      await fetchAndAddFile(zip, 'cape/models/entity/custom.geo.json', 'models/entity/custom.geo.json');
+      await fetchAndAddFile(zip, 'cape/render_controllers/custom.render_controller.json', 'render_controllers/custom.render_controller.json');
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const downloadLink = document.createElement('a');
+      downloadLink.href = URL.createObjectURL(zipBlob);
+      downloadLink.download = 'cape_texture.zip';
+      downloadLink.click();
+    }
+  </script>
+</body>
+</html>
